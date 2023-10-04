@@ -1,0 +1,38 @@
+bootstrap:docker
+From:tensorflow/tensorflow:2.12.0rc1-gpu-jupyter
+
+%setup
+	echo "# singularity nvidia libs when run in --nv
+/.singularity.d/libs/" >> ${SINGULARITY_ROOTFS}/etc/ld.so.conf.d/singularity-nv.conf
+
+%environment
+	TF_ENABLE_ONEDNN_OPTS=1
+	TF_CPP_MIN_LOG_LEVEL=1
+	TF_FORCE_GPU_ALLOW_GROWTH=true
+
+%post
+	apt update
+	apt install -y \
+		wget \
+		unzip \
+		vim \
+		git \
+		cmake \
+      ffmpeg \
+      libsm6 \
+      libxext6
+
+	rm /etc/ld.so.cache
+	ldconfig
+
+	export TF_ENABLE_ONEDNN_OPTS=1
+	export TF_CPP_MIN_LOG_LEVEL=1
+	export TF_FORCE_GPU_ALLOW_GROWTH=true
+
+   pip install \
+      numpy \
+      matplotlib \
+      opencv-python \
+		tensorflow-addons
+
+	for a in /sys/bus/pci/devices/*; do echo 0 | tee -a $a/numa_node; done
